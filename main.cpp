@@ -37,23 +37,6 @@ class Entity {
 		}
 };
 
-class Agent: public Entity {
-	public:
-		sf::RectangleShape shape;
-		float maxSpeed;
-		sf::Vector2f velocity;
-};
-
-class Wall: public Entity {
-	public:
-		sf::RectangleShape shape;
-		sf::Vector2f size;
-		Wall(float x, float y, float width, float height): Entity(x, y) {
-			size.x = width;
-			size.y = height;
-		}	
-};
-
 bool checkCollision(sf::RectangleShape shape1, sf::RectangleShape shape2) {
 	sf::Vector2f size1 = shape1.getSize();
 	sf::Vector2f size2 = shape2.getSize();
@@ -62,69 +45,69 @@ bool checkCollision(sf::RectangleShape shape1, sf::RectangleShape shape2) {
 	return true;
 }
 
-void update(Agent& player) {
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-		player.x -= player.speed;
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-		player.y -= player.speed;
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-		player.x += player.speed;
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-		player.y += player.speed;
-	}
-}
+class Game {
+	public:
+		sf::RenderWindow window(sf::VideoMode(640, 480),"game");
+		Entity player(200, 200);
+		sf::RectangleShape playerShape(sf::Vector2f(200, 200));
 
-void render(sf::RenderWindow& window, Entity& entities) {
-	//render each entity in list of entities somehow
-	//make sure to round doubles to ints before rendering.
-	//does this mean we need the shapes as seperate from the objects?
-	//we could go through a list of shapes instead of objects...
-	//could have a pointer to a shape for each object
-	//need to keep sprites in mind. not always going to be shapes.
-	//probably need to get the answer from the internet.
-	//wait on this for now.
-}
+	void update() {
+		//get input
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+			player.vel.x = -player.maxspeed;
+		}
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+			player.vel.y = -player.maxspeed;
+		}
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+			player.vel.x = -player.maxSpeed;
+		}
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+			player.vel.y = player.maxSpeed;
+		}
+		else {
+			player.vel.x = 0;
+			player.vel.y = 0;
+		}
+
+		//update pos and vel 
+		player.vel.x += player.acc.x;
+		player.vel.y += player.acc.y;
+		player.pos.x += player.vel.x;
+		player.pos.y += player.vel.y;
+	}
+
+	void render() {
+		playerShape.setPosition(player.pos.x, player.pos.y);
+		
+		window.clear();
+		window.draw(playerShape);
+	}
+
+	void startGameLoop() {
+		sf::Clock clock;
+		while (window.isOpen()) {
+			sf::Event event;
+			while (window.pollEvent(event)) {
+				if (event.type == sf::Event::Closed) {
+					window.close();
+				}
+			}
+
+			update();
+			render();			
+
+			sf::Time elapsed = clock.getElapsedTime();
+			while(elapsed.asMilliseconds() < 1000/tickRate) {
+				elapsed = clock.getElapsedTime();
+			}
+			clock.restart();
+		}
+	}
+};
 
 int main() {
-	sf::RenderWindow window(
-			sf::VideoMode(640, 480),
-			"whatup");
-	Agent player(400, 200);
-	player.shape = sf::RectangleShape(sf::Vector2f(40,40));
-	player.speed = 1;
-
-	Wall wall(100,100);
-	wall.shape = sf::RectangleShape(sf::Vector2f(20,100));
-	
-	cout << checkCollision(player.shape, wall.shape) << endl;
-
-	sf::Clock clock;
-	while (window.isOpen()) {
-		sf::Event event;
-		while (window.pollEvent(event)) {
-			if (event.type == sf::Event::Closed) {
-				window.close();
-			}
-		}
-
-		update(player);
-
-		player.shape.setPosition(player.x, player.y);
-		wall.shape.setPosition(wall.x, wall.y);
-		window.clear();
-		window.draw(player.shape);
-		window.draw(wall.shape);
-		window.display();
-
-		
-		sf::Time elapsed = clock.getElapsedTime();
-		while(elapsed.asMilliseconds() < 1000/tickRate) {
-			elapsed = clock.getElapsedTime();
-		}
-		clock.restart();
-	}
+	Game game;
+	game.startGameLoop();
 	return 0;
 }
