@@ -13,7 +13,7 @@ ostream& operator<<(ostream& os, const sf::Vector2f v) {
 	return os;
 }
 
-ostream& operater<<(ostream& os, const Entity e) {
+ostream& operator<<(ostream& os, const Entity e) {
 	os << "Entity: pos " << e.pos << " vel " << e.vel << " acc " << e.acc << endl; 
 	return os;
 }
